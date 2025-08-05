@@ -1,6 +1,5 @@
-import { Files, Loader } from "lucide-react";
+import { Files } from "lucide-react";
 import { Card, CardDescription, CardHeader } from "./ui/card";
-import { Progress } from "@/components/ui/progress";
 
 export function Card12() {
   return (

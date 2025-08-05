@@ -14,6 +14,7 @@ import { Button } from "./ui/button";
 import { useTheme } from "next-themes";
 import { SidebarTrigger } from "./ui/sidebar";
 import { SearchForm } from "./searchform";
+import Link from "next/link";
 const Navbar = () => {
   const { setTheme } = useTheme();
 
@@ -66,10 +67,12 @@ const Navbar = () => {
               <Settings className=" h-[1.2rem] w-[1.2rem] mr-2" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive">
-              <LogOut className=" h-[1.2rem] w-[1.2rem] mr-2" />
-              Logout
-            </DropdownMenuItem>
+            <Link href="/">
+              <DropdownMenuItem variant="destructive">
+                <LogOut className=" h-[1.2rem] w-[1.2rem] mr-2" />
+                Logout
+              </DropdownMenuItem>
+            </Link>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -1,7 +1,30 @@
+import { Card15 } from "@/components/Card15";
+import { Card16 } from "@/components/Card16";
+import { Card17 } from "@/components/Card17";
+import { Card18 } from "@/components/Card18";
+import { TableMember } from "@/components/tableMember";
+
 export default function Teams() {
   return (
-    <div>
-      <h1>Teams</h1>
+    <div className="grid p-2">
+      <h1 className="px-1 text-xl font-medium mb-2">Teams</h1>
+      <main className="grid lg:grid-cols-4 md:grid-cols-2 sm:grid-cols-1 gap-4">
+        <div>
+          <Card15 />
+        </div>
+        <div>
+          <Card16 />
+        </div>
+        <div>
+          <Card17 />
+        </div>
+        <div>
+          <Card18 />
+        </div>
+        <div className="lg:col-span-4 md:col-span-2 sm:col-span-1">
+          <TableMember />
+        </div>
+      </main>
     </div>
   );
 }

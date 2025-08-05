@@ -1,13 +1,11 @@
 import {
-  Calendar,
+  CalendarPlus,
   ChartColumn,
   ChevronUp,
-  CircleCheck,
   CirclePlus,
   Folder,
+  History,
   Home,
-  Inbox,
-  Search,
   Settings,
   UserRound,
   Users,
@@ -23,7 +21,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
 } from "./ui/sidebar";
 import Link from "next/link";
 import Image from "next/image";
@@ -36,18 +33,24 @@ import {
 const items = [
   {
     title: "Dashboard",
-    url: "/",
+    url: "/dashboard",
     icon: Home,
   },
-  {
-    title: "Inbox",
-    url: "#",
-    icon: Inbox,
-  },
+
   {
     title: "Teams",
     url: "/teams",
     icon: Users,
+  },
+  {
+    title: "Meetings",
+    url: "/meetings",
+    icon: CalendarPlus,
+  },
+  {
+    title: "Attendance",
+    url: "/attendance",
+    icon: History,
   },
   {
     title: "Analytics",
@@ -68,7 +71,7 @@ const AppSidebar = () => {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/">
+              <Link href="/dashboard">
                 <Image
                   src="/kujang.svg"
                   alt="logo"
@@ -106,7 +109,7 @@ const AppSidebar = () => {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/">
+                  <Link href="/addproject">
                     <CirclePlus />
                     Add Project
                   </Link>
@@ -116,7 +119,7 @@ const AppSidebar = () => {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/">
+                  <Link href="/mainProject">
                     <Folder />
                     Main Project
                   </Link>
