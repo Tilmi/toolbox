@@ -26,9 +26,9 @@ import {
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import {
-  AttendanceRecord,
-  AttendanceSummary,
-  MeetingTypeStats,
+  type AttendanceRecord,
+  type AttendanceSummary,
+  type MeetingTypeStats as MeetingTypeStatsType,
   getStatusVariant,
   formatAttendanceStatus,
 } from "@/lib/dataAttendance";
@@ -181,7 +181,7 @@ export function AttendanceRecordItem({
 
 // Meeting Type Statistics Component
 interface MeetingTypeStatsProps {
-  stats: MeetingTypeStats[];
+  stats: MeetingTypeStatsType[];
 }
 
 export function MeetingTypeStats({ stats }: MeetingTypeStatsProps) {
