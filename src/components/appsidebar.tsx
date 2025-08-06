@@ -47,11 +47,11 @@ const items = [
     url: "/meetings",
     icon: CalendarPlus,
   },
-  {
-    title: "Attendance",
-    url: "/attendance",
-    icon: History,
-  },
+  // {
+  //   title: "Attendance",
+  //   url: "/attendance",
+  //   icon: History,
+  // },
   {
     title: "Analytics",
     url: "/analytics",

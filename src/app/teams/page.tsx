@@ -8,17 +8,17 @@ export default function Teams() {
   return (
     <div className="grid p-2">
       <h1 className="px-1 text-xl font-medium mb-2">Teams</h1>
-      <main className="grid lg:grid-cols-4 md:grid-cols-2 sm:grid-cols-1 gap-4">
-        <div>
+      <main className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="lg:col-span-1 md:col-span-2 sm:col-span-1">
           <Card15 />
         </div>
-        <div>
+        <div className="lg:col-span-1 md:col-span-2 sm:col-span-1">
           <Card16 />
         </div>
-        <div>
+        <div className="lg:col-span-1 md:col-span-2 sm:col-span-1">
           <Card17 />
         </div>
-        <div>
+        <div className="lg:col-span-1 md:col-span-2 sm:col-span-1">
           <Card18 />
         </div>
         <div className="lg:col-span-4 md:col-span-2 sm:col-span-1">

@@ -21,6 +21,7 @@ import {
   FileText,
   User,
   Building,
+  Download,
 } from "lucide-react";
 import {
   formatDate,
@@ -48,6 +49,471 @@ const MeetingDetailDialog = ({
   const handleEdit = () => {
     onEdit(meeting);
     onOpenChange(false);
+  };
+
+  const exportToPDF = async () => {
+    try {
+      // Dynamic import to avoid SSR issues
+      const jsPDF = (await import("jspdf")).default;
+
+      // Create new PDF document
+      const pdf = new jsPDF();
+
+      // Set font
+      pdf.setFont("helvetica");
+
+      let yPosition = 20;
+      const leftMargin = 20;
+      const rightMargin = 190;
+      const pageWidth = rightMargin - leftMargin;
+
+      // Header Section (without logo)
+      pdf.setFontSize(16);
+      pdf.setTextColor(40, 40, 40);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("PT. PUPUK KUJANG CIKAMPEK", 105, 22, { align: "center" });
+
+      // Company address/info
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(100, 100, 100);
+      pdf.text("Jl. Raya Cikampek - Jakarta, Cikampek, Karawang", 105, 28, {
+        align: "center",
+      });
+      pdf.text("Telp: (0267) 8459000 | Email: info@pupukkujang.com", 105, 32, {
+        align: "center",
+      });
+
+      yPosition = 50;
+
+      // Document Title
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 100, 200);
+      pdf.text("NOTULENSI RAPAT", 105, yPosition, { align: "center" });
+      yPosition += 5;
+
+      // Line separator
+      pdf.setLineWidth(1);
+      pdf.setDrawColor(0, 100, 200);
+      pdf.line(leftMargin, yPosition, rightMargin, yPosition);
+      yPosition += 15;
+
+      // 1. IDENTITAS RAPAT
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 100, 200);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("I. IDENTITAS RAPAT", leftMargin, yPosition);
+      yPosition += 10;
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
+
+      // Meeting details in table format
+      const addDetailRow = (
+        label: string,
+        value: string,
+        wrap: boolean = false
+      ) => {
+        pdf.setFont("helvetica", "bold");
+        pdf.text(`${label}:`, leftMargin + 5, yPosition);
+        pdf.setFont("helvetica", "normal");
+
+        if (wrap) {
+          const lines = pdf.splitTextToSize(value, pageWidth - 60);
+          pdf.text(lines, leftMargin + 60, yPosition);
+          yPosition += lines.length * 4 + 2;
+        } else {
+          pdf.text(value, leftMargin + 60, yPosition);
+          yPosition += 6;
+        }
+      };
+
+      addDetailRow("Nama Rapat", meeting.title, true);
+      addDetailRow("Hari/Tanggal", formatDate(meeting.date));
+      addDetailRow(
+        "Waktu",
+        `${formatTime(meeting.startTime)} - ${formatTime(meeting.endTime)} WIB`
+      );
+      addDetailRow("Tempat", meeting.location, true);
+      addDetailRow(
+        "Jenis Rapat",
+        meeting.type === "online" ? "Online Meeting" : "Rapat Tatap Muka"
+      );
+      addDetailRow("Pimpinan Rapat", meeting.organizer);
+      addDetailRow("Departemen", meeting.department);
+      addDetailRow(
+        "Status",
+        meeting.status.charAt(0).toUpperCase() + meeting.status.slice(1)
+      );
+      yPosition += 10;
+
+      // 2. DAFTAR HADIR
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 100, 200);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("II. DAFTAR HADIR", leftMargin, yPosition);
+      yPosition += 10;
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
+
+      const participants = meeting.attendees.split(",").map((p) => p.trim());
+      pdf.text("Peserta yang hadir:", leftMargin + 5, yPosition);
+      yPosition += 6;
+
+      participants.forEach((participant, index) => {
+        pdf.text(`${index + 1}. ${participant}`, leftMargin + 10, yPosition);
+        yPosition += 5;
+      });
+
+      // Add organizer to attendance
+      pdf.text(
+        `${participants.length + 1}. ${meeting.organizer} (Pimpinan Rapat)`,
+        leftMargin + 10,
+        yPosition
+      );
+      yPosition += 10;
+
+      // Total attendees
+      pdf.setFont("helvetica", "bold");
+      pdf.text(
+        `Total Peserta: ${participants.length + 1} orang`,
+        leftMargin + 5,
+        yPosition
+      );
+      yPosition += 15;
+
+      // 3. AGENDA RAPAT
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 100, 200);
+      pdf.text("III. AGENDA RAPAT", leftMargin, yPosition);
+      yPosition += 10;
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
+
+      const agendaLines = pdf.splitTextToSize(meeting.agenda, pageWidth - 10);
+      pdf.text(agendaLines, leftMargin + 5, yPosition);
+      yPosition += agendaLines.length * 4 + 15;
+
+      // Check if we need a new page
+      if (yPosition > 250) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+
+      // 4. PEMBAHASAN & KEPUTUSAN
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 100, 200);
+      pdf.text("IV. RINGKASAN PEMBAHASAN & KEPUTUSAN", leftMargin, yPosition);
+      yPosition += 10;
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
+
+      if (meeting.notulensi && meeting.notulensi.trim()) {
+        const minutesLines = pdf.splitTextToSize(
+          meeting.notulensi,
+          pageWidth - 10
+        );
+
+        // Handle page breaks for long content
+        minutesLines.forEach((line: string) => {
+          if (yPosition > 270) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+          pdf.text(line, leftMargin + 5, yPosition);
+          yPosition += 4;
+        });
+      } else {
+        pdf.setTextColor(150, 150, 150);
+        pdf.text(
+          "Belum ada catatan pembahasan dan keputusan yang direkam.",
+          leftMargin + 5,
+          yPosition
+        );
+        yPosition += 6;
+      }
+      yPosition += 15;
+
+      // 5. TINDAK LANJUT (ACTION ITEMS)
+      if (yPosition > 250) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 100, 200);
+      pdf.text("V. TINDAK LANJUT (ACTION ITEMS)", leftMargin, yPosition);
+      yPosition += 10;
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
+
+      // Parse and extract action items from notulensi
+      if (meeting.notulensi && meeting.notulensi.trim()) {
+        const notulensiText = meeting.notulensi.toLowerCase();
+
+        // Check if there are action items mentioned in the notes
+        if (
+          notulensiText.includes("action") ||
+          notulensiText.includes("tindak") ||
+          notulensiText.includes("deadline") ||
+          notulensiText.includes("follow up")
+        ) {
+          pdf.text(
+            "Berdasarkan hasil pembahasan rapat, berikut adalah tindak lanjut yang harus dilaksanakan:",
+            leftMargin + 5,
+            yPosition
+          );
+          yPosition += 8;
+
+          // Try to extract specific action items
+          const sentences = meeting.notulensi
+            .split(/[.!?]+/)
+            .filter((s) => s.trim());
+          let actionItemNumber = 1;
+          let hasActionItems = false;
+
+          sentences.forEach((sentence) => {
+            const lowerSentence = sentence.toLowerCase();
+            if (
+              lowerSentence.includes("action") ||
+              lowerSentence.includes("tindak") ||
+              lowerSentence.includes("deadline") ||
+              lowerSentence.includes("follow up") ||
+              lowerSentence.includes("mencari") ||
+              lowerSentence.includes("menyesuaikan") ||
+              lowerSentence.includes("mengevaluasi") ||
+              lowerSentence.includes("melakukan")
+            ) {
+              if (yPosition > 270) {
+                pdf.addPage();
+                yPosition = 20;
+              }
+
+              const actionText = sentence.trim();
+              if (actionText.length > 10) {
+                // Only include meaningful action items
+                const lines = pdf.splitTextToSize(
+                  `${actionItemNumber}. ${actionText}.`,
+                  pageWidth - 15
+                );
+                pdf.text(lines, leftMargin + 10, yPosition);
+                yPosition += lines.length * 4 + 3;
+                actionItemNumber++;
+                hasActionItems = true;
+              }
+            }
+          });
+
+          // If no specific action items found, provide a general summary
+          if (!hasActionItems) {
+            pdf.text(
+              "1. Melaksanakan keputusan dan hasil pembahasan yang telah disepakati dalam rapat.",
+              leftMargin + 10,
+              yPosition
+            );
+            yPosition += 6;
+            pdf.text(
+              "2. Melakukan monitoring dan evaluasi terhadap progress implementasi.",
+              leftMargin + 10,
+              yPosition
+            );
+            yPosition += 6;
+            pdf.text(
+              "3. Melaporkan perkembangan pada rapat berikutnya sesuai jadwal yang ditentukan.",
+              leftMargin + 10,
+              yPosition
+            );
+          }
+
+          yPosition += 8;
+
+          // Add deadline information if available
+          pdf.setFont("helvetica", "bold");
+          pdf.text("Catatan:", leftMargin + 5, yPosition);
+          pdf.setFont("helvetica", "normal");
+          yPosition += 5;
+          pdf.text(
+            "- Setiap tindak lanjut harus dilaksanakan sesuai dengan timeline yang telah disepakati.",
+            leftMargin + 10,
+            yPosition
+          );
+          yPosition += 5;
+          pdf.text(
+            "- Progress pelaksanaan akan dipantau dan dilaporkan pada rapat evaluasi berikutnya.",
+            leftMargin + 10,
+            yPosition
+          );
+        } else {
+          // No specific action items found
+          pdf.text(
+            "Berdasarkan hasil pembahasan rapat:",
+            leftMargin + 5,
+            yPosition
+          );
+          yPosition += 8;
+          pdf.text(
+            "1. Melaksanakan semua keputusan yang telah disepakati dalam rapat ini.",
+            leftMargin + 10,
+            yPosition
+          );
+          yPosition += 6;
+          pdf.text(
+            "2. Setiap peserta bertanggung jawab terhadap tugas dan kewajiban masing-masing.",
+            leftMargin + 10,
+            yPosition
+          );
+          yPosition += 6;
+          pdf.text(
+            "3. Melakukan evaluasi berkala terhadap implementasi hasil rapat.",
+            leftMargin + 10,
+            yPosition
+          );
+        }
+      } else {
+        // No meeting notes available
+        pdf.text(
+          "Tindak lanjut akan ditetapkan setelah pembahasan rapat selesai:",
+          leftMargin + 5,
+          yPosition
+        );
+        yPosition += 8;
+        pdf.text(
+          "1. Menunggu hasil finalisasi pembahasan dan keputusan rapat.",
+          leftMargin + 10,
+          yPosition
+        );
+        yPosition += 6;
+        pdf.text(
+          "2. Tindak lanjut spesifik akan dikomunikasikan melalui notulensi final.",
+          leftMargin + 10,
+          yPosition
+        );
+        yPosition += 6;
+        pdf.text(
+          "3. Setiap peserta diminta standby untuk menerima instruksi lebih lanjut.",
+          leftMargin + 10,
+          yPosition
+        );
+      }
+      yPosition += 15;
+
+      // 6. PENUTUP
+      if (yPosition > 240) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 100, 200);
+      pdf.text("VI. PENUTUP", leftMargin, yPosition);
+      yPosition += 10;
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
+
+      const closingText = `Rapat ditutup pada pukul ${formatTime(
+        meeting.endTime
+      )} WIB oleh ${
+        meeting.organizer
+      } sebagai pimpinan rapat. Demikian notulensi rapat ini dibuat dengan sebenar-benarnya.`;
+      const closingLines = pdf.splitTextToSize(closingText, pageWidth - 10);
+      pdf.text(closingLines, leftMargin + 5, yPosition);
+      yPosition += closingLines.length * 4 + 20;
+
+      // 7. TANDA TANGAN
+      if (yPosition > 220) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 100, 200);
+      pdf.text("VII. PENGESAHAN", leftMargin, yPosition);
+      yPosition += 15;
+
+      // Signature section
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
+
+      // Date and place
+      const currentDate = new Date().toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+      pdf.text(`Cikampek, ${currentDate}`, rightMargin - 60, yPosition);
+      yPosition += 15;
+
+      // Signature boxes
+      const signatureBoxes = [
+        { title: "Pimpinan Rapat", name: meeting.organizer },
+        { title: "Notulis", name: "........................" },
+      ];
+
+      signatureBoxes.forEach((sig, index) => {
+        const xPos = leftMargin + index * 85;
+        pdf.text(sig.title, xPos, yPosition);
+
+        // Signature line
+        pdf.line(xPos, yPosition + 25, xPos + 70, yPosition + 25);
+        pdf.text(sig.name, xPos, yPosition + 30);
+      });
+
+      // Footer with metadata (no logo)
+      const pageCount = pdf.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+
+        pdf.setFontSize(8);
+        pdf.setTextColor(150, 150, 150);
+
+        // Bottom left - Generation info
+        pdf.text(
+          `Dibuat secara otomatis pada ${new Date().toLocaleString("id-ID")}`,
+          leftMargin,
+          285
+        );
+
+        // Bottom center - Page number
+        pdf.text(`Halaman ${i} dari ${pageCount}`, 105, 285, {
+          align: "center",
+        });
+
+        // Bottom right - Document ID
+        pdf.text(
+          `Doc ID: MTG-${meeting.id}-${meeting.date}`,
+          rightMargin - 40,
+          285
+        );
+      }
+
+      // Save the PDF with formal naming
+      const fileName = `Notulensi_Rapat_${meeting.title.replace(
+        /[^a-z0-9]/gi,
+        "_"
+      )}_${meeting.date}.pdf`;
+      pdf.save(fileName);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Terjadi kesalahan saat membuat PDF. Silakan coba lagi.");
+    }
   };
 
   return (
@@ -251,6 +717,14 @@ const MeetingDetailDialog = ({
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
+          </Button>
+          <Button
+            onClick={exportToPDF}
+            variant="outline"
+            className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export Notulensi
           </Button>
           <Button
             onClick={handleEdit}

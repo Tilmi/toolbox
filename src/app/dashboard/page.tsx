@@ -13,16 +13,16 @@ export default function Dashboard() {
     <div className="grid p-2">
       <h1 className="px-1 text-xl font-medium mb-2">Dashboard</h1>
       <main className="grid lg:grid-cols-4 md:grid-cols-2 sm:grid-cols-1 gap-4">
-        <div>
+        <div className="lg:col-span-1 md:col-span-2">
           <Card1 />
         </div>
-        <div>
+        <div className="lg:col-span-1 md:col-span-2">
           <Card2 />
         </div>
-        <div>
+        <div className="lg:col-span-1 md:col-span-2">
           <Card3 />
         </div>
-        <div>
+        <div className="lg:col-span-1 md:col-span-2">
           <Card4 />
         </div>
         <div className="lg:col-span-2 md:col-span-2">
